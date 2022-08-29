@@ -20,13 +20,13 @@ Classes, constants and functions in this file are experimental and have no
 backwards compatibility guarantees.
 NOTHING IN THIS FILE HAS BACKWARDS COMPATIBILITY GUARANTEES.
 """
-
 from typing import Optional
 from typing import Sequence
 
 import numpy as np
 
 import apache_beam as beam
+import apache_beam.utils.timestamp
 from apache_beam.io.gcp.internal.clients import bigquery
 from apache_beam.portability.api import schema_pb2
 
@@ -40,6 +40,7 @@ BIG_QUERY_TO_PYTHON_TYPES = {
     "FLOAT64": np.float64,
     "BOOLEAN": bool,
     "BYTES": bytes,
+    "TIMESTAMP": apache_beam.utils.timestamp.Timestamp
     #TODO(https://github.com/apache/beam/issues/20810):
     # Finish mappings for all BQ types
 }

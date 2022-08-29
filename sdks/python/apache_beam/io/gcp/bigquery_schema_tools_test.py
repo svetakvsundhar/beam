@@ -53,6 +53,25 @@ class TestBigQueryToSchema(unittest.TestCase):
             'count': np.int64
         })
 
+  def test_check_schema_conversions_with_timestamp(self):
+    fields = [
+        bigquery.TableFieldSchema(name='stn', type='STRING', mode="NULLABLE"),
+        bigquery.TableFieldSchema(name='temp', type='FLOAT64', mode="REPEATED"),
+        bigquery.TableFieldSchema(
+            name='times', type='TIMESTAMP', mode="NULLABLE")
+    ]
+    schema = bigquery.TableSchema(fields=fields)
+
+    usertype = bigquery_schema_tools.generate_user_type_from_bq_schema(
+        the_table_schema=schema)
+    self.assertEqual(
+        usertype.__annotations__,
+        {
+            'stn': typing.Optional[str],
+            'temp': typing.Sequence[np.float64],
+            'times': typing.Optional[apache_beam.utils.timestamp.Timestamp]
+        })
+
   def test_check_conversion_with_empty_schema(self):
     fields = []
     schema = bigquery.TableSchema(fields=fields)
