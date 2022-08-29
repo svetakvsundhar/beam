@@ -81,7 +81,7 @@ def bq_field_to_type(field, mode):
     return Optional[BIG_QUERY_TO_PYTHON_TYPES[field]]
   elif mode == 'REPEATED':
     return Sequence[BIG_QUERY_TO_PYTHON_TYPES[field]]
-  elif mode is None or mode == '':
+  elif mode is None or mode == '' or mode == 'REQUIRED':
     return BIG_QUERY_TO_PYTHON_TYPES[field]
   else:
     raise ValueError(f"Encountered an unsupported mode: {mode!r}")
