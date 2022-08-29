@@ -16,6 +16,14 @@
 package main
 
 import (
+	"context"
+	"fmt"
+
+	"github.com/improbable-eng/grpc-web/go/grpcweb"
+	"google.golang.org/grpc"
+
+	"beam.apache.org/playground/backend/internal/tasks"
+
 	pb "beam.apache.org/playground/backend/internal/api/v1"
 	"beam.apache.org/playground/backend/internal/cache"
 	"beam.apache.org/playground/backend/internal/cache/local"
@@ -29,10 +37,6 @@ import (
 	"beam.apache.org/playground/backend/internal/environment"
 	"beam.apache.org/playground/backend/internal/logger"
 	"beam.apache.org/playground/backend/internal/utils"
-	"context"
-	"fmt"
-	"github.com/improbable-eng/grpc-web/go/grpcweb"
-	"google.golang.org/grpc"
 )
 
 // runServer is starting http server wrapped on grpc
@@ -41,11 +45,6 @@ func runServer() error {
 	defer cancel()
 
 	envService, err := setupEnvironment()
-	if err != nil {
-		return err
-	}
-
-	props, err := environment.NewProperties(envService.ApplicationEnvs.PropertyPath())
 	if err != nil {
 		return err
 	}
@@ -61,11 +60,17 @@ func runServer() error {
 
 	var dbClient db.Database
 	var entityMapper mapper.EntityMapper
+	var props *environment.Properties
 
 	// Examples catalog should be retrieved and saved to cache only if the server doesn't suppose to run code, i.e. SDK is unspecified
 	// Database setup only if the server doesn't suppose to run code, i.e. SDK is unspecified
 	if envService.BeamSdkEnvs.ApacheBeamSdk == pb.Sdk_SDK_UNSPECIFIED {
 		err = setupExamplesCatalog(ctx, cacheService, envService.ApplicationEnvs.BucketName())
+		if err != nil {
+			return err
+		}
+
+		props, err = environment.NewProperties(envService.ApplicationEnvs.PropertyPath())
 		if err != nil {
 			return err
 		}
@@ -80,6 +85,12 @@ func runServer() error {
 		}
 
 		entityMapper = mapper.New(&envService.ApplicationEnvs, props)
+
+		// Since only router server has the scheduled task, the task creation is here
+		scheduledTasks := tasks.New(ctx)
+		if err = scheduledTasks.StartRemovingExtraSnippets(props.RemovingUnusedSnptsCron, props.RemovingUnusedSnptsDays, dbClient); err != nil {
+			return err
+		}
 	}
 
 	pb.RegisterPlaygroundServiceServer(grpcServer, &playgroundController{

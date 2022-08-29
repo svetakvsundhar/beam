@@ -39,6 +39,7 @@ import apache_beam as beam
 import apache_beam.io.gcp.bigquery
 from apache_beam.dataframe import convert
 from apache_beam.dataframe import io
+from apache_beam.io import fileio
 from apache_beam.io import restriction_trackers
 from apache_beam.io.gcp.bigquery_tools import BigQueryWrapper
 from apache_beam.io.gcp.internal.clients import bigquery
@@ -115,6 +116,17 @@ A     B
       df.to_csv(output + 'out.csv', index=False)
     self.assertCountEqual(['a,b,c', '1,2,3', '3,4,7'],
                           set(self.read_all_lines(output + 'out.csv*')))
+
+  def test_sharding_parameters(self):
+    data = pd.DataFrame({'label': ['11a', '37a', '389a'], 'rank': [0, 1, 2]})
+    output = self.temp_dir()
+    with beam.Pipeline() as p:
+      df = convert.to_dataframe(p | beam.Create([data]), proxy=data[:0])
+      df.to_csv(
+          output,
+          num_shards=1,
+          file_naming=fileio.single_file_naming('out.csv'))
+    self.assertEqual(glob.glob(output + '*'), [output + 'out.csv'])
 
   @pytest.mark.uses_pyarrow
   @unittest.skipIf(
