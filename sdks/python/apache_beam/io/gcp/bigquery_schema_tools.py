@@ -26,7 +26,7 @@ from typing import Sequence
 import numpy as np
 
 import apache_beam as beam
-import apache_beam.utils.timestamp
+from apache_beam.utils.timestamp import TimestampDurationTypes
 from apache_beam.io.gcp.internal.clients import bigquery
 from apache_beam.portability.api import schema_pb2
 
@@ -38,9 +38,10 @@ BIG_QUERY_TO_PYTHON_TYPES = {
     "STRING": str,
     "INTEGER": np.int64,
     "FLOAT64": np.float64,
+    "FLOAT": np.float,
     "BOOLEAN": bool,
     "BYTES": bytes,
-    "TIMESTAMP": apache_beam.utils.timestamp.Timestamp
+    "TIMESTAMP": TimestampDurationTypes
     #TODO(https://github.com/apache/beam/issues/20810):
     # Finish mappings for all BQ types
 }

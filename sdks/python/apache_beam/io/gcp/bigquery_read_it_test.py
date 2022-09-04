@@ -260,29 +260,15 @@ class ReadTests(BigQueryReadIntegrationTests):
 
   @pytest.mark.it_postcommit
   def test_table_schema_retrieve_with_timestamp(self):
-    the_table = bigquery_tools.BigQueryWrapper().get_table(
-        project_id="apache-beam-testing",
-        dataset_id="beam_bigquery_samples_1600821323492_0",
-        table_id="microbenchmarks")
-    table = the_table.schema
-    utype = bigquery_schema_tools.\
-        generate_user_type_from_bq_schema(table)
     with beam.Pipeline(argv=self.args) as p:
       result = (
           p | apache_beam.io.gcp.bigquery.ReadFromBigQuery(
               gcs_location="gs://bqio_schema_test",
-              dataset="beam_bigquery_samples_1600821323492_0",
-              table="microbenchmarks",
+              dataset="beam_bigquery_io_test",
+              table="taxi",
               project="apache-beam-testing",
               output_type='BEAM_ROW'))
-      assert_that(
-          result,
-          equal_to([
-              utype(id=3, name='customer1', type='test'),
-              utype(id=1, name='customer1', type='test'),
-              utype(id=2, name='customer2', type='test'),
-              utype(id=4, name='customer2', type='test')
-          ]))
+      assert_that(result, equal_to(['hi']))
 
 
 class ReadUsingStorageApiTests(BigQueryReadIntegrationTests):
