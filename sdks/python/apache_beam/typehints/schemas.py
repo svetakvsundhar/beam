@@ -54,7 +54,7 @@ any backwards-compatibility guarantee.
 """
 
 # pytype: skip-file
-
+import datetime
 from typing import Any
 from typing import ByteString
 from typing import Dict
@@ -726,6 +726,39 @@ class MicrosInstant(NoArgumentLogicalType[Timestamp,
   def to_language_type(self, value):
     # type: (MicrosInstantRepresentation) -> Timestamp
     return Timestamp(seconds=int(value.seconds), micros=int(value.micros))
+
+
+# Make sure MicrosInstant is registered after MillisInstant so that it
+# overwrites the mapping of datetime.datetime
+# language type representation choice and
+# thus does not lose microsecond precision inside python sdk.
+@LogicalType.register_logical_type
+class MicrosInstantDatetime(NoArgumentLogicalType[datetime.datetime,
+                                                  MicrosInstantRepresentation]):
+  """Microsecond-precision instant logical type
+  that handles ``datetime.datetime``."""
+  @classmethod
+  def urn(cls):
+    return common_urns.micros_instant.urn
+
+  @classmethod
+  def representation_type(cls):
+    # type: () -> type
+    return MicrosInstantRepresentation
+
+  @classmethod
+  def language_type(cls):
+    return datetime.datetime
+
+  def to_representation_type(self, value):
+    # type: (datetime.datetime) -> MicrosInstantRepresentation
+    return MicrosInstantRepresentation(
+        value.microsecond // 1000000, value.microsecond % 1000000)
+
+  def to_language_type(self, value):
+    # type: (MicrosInstantRepresentation) -> datetime.datetime
+    return datetime.datetime(
+        second=int(value.seconds), microsecond=int(value.micros))
 
 
 @LogicalType.register_logical_type
