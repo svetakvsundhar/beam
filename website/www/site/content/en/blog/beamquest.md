@@ -21,7 +21,7 @@ limitations under the License.
 -->
 
 <img class="center-block"
-     src="/images/blog/beam-badge-scaled.png"
+     src="/images/blog/beam-image-scaled.png"
      alt="Quest image">
 
 
