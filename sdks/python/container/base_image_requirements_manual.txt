@@ -39,4 +39,4 @@ nltk  # Commonly used for natural language processing.
 google-crc32c
 scipy
 scikit-learn
-build>=1.0,<2 # tool to build sdist from setup.py in stager.
+build>=1.4.4,<2 # tool to build sdist from setup.py in stager.
